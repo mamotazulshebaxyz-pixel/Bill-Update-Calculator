@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sheba.xyz Vat Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f0f3f8;
+            --card-bg: #ffffff;
+            --text-color: #2d3748;
+            --text-muted: #718096;
+            --input-bg: #ffffff;
+            --input-border: #cbd5e0;
+            --primary: #e74c3c;
+            --primary-hover: #c0392b;
+            --accent-bg: #e6fffa;
+            --accent-border: #38b2ac;
+            --accent-text: #234e52;
+            --result-bg: #f8fafc;
+            --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            --header-bg: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --text-color: #f1f5f9;
+            --text-muted: #94a3b8;
+            --input-bg: #0f172a;
+            --input-border: #334155;
+            --primary: #ef4444;
+            --primary-hover: #dc2626;
+            --accent-bg: #064e3b;
+            --accent-border: #059669;
+            --accent-text: #a7f3d0;
+            --result-bg: #111827;
+            --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+            --header-bg: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 450px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .header {
+            background: var(--header-bg);
+            color: white;
+            padding: 24px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .header p {
+            margin: 6px 0 0;
+            font-size: 14px;
+            opacity: 0.92;
+            font-weight: 500;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            backdrop-filter: blur(4px);
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .content {
+            padding: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            margin-bottom: 8px;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 14px;
+            font-size: 16px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1.5px solid var(--input-border);
+            border-radius: 10px;
+            outline: none;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
+        }
+
+        button.btn-calculate {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+
+        button.btn-calculate:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .result-card {
+            margin-top: 24px;
+            background: var(--result-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 12px;
+            padding: 18px;
+        }
+
+        .highlight-box {
+            background: var(--accent-bg);
+            border: 1.5px solid var(--accent-border);
+            color: var(--accent-text);
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 18px;
+            text-align: center;
+        }
+
+        .highlight-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .highlight-value {
+            font-size: 28px;
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .unit-note {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 4px;
+            opacity: 0.85;
+        }
+
+        .result-header {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--input-border);
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: var(--text-color);
+        }
+
+        .row.bold {
+            font-weight: 700;
+            border-top: 1px dashed var(--input-border);
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+
+        .row.gross {
+            background: rgba(239, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 15px;
+            margin-top: 12px;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="থিম পরিবর্তন করুন">🌙</button>
+        <h2>Sheba.xyz Vat Calculator</h2>
+        <p>সহজ টার্গেট বিল ও ভ্যাট ক্যালকুলেটর</p>
+    </div>
+    
+    <div class="content">
+        <div class="input-group">
+            <label for="targetGross">মোট কত বিল বানাতে হবে (৳):</label>
+            <div class="input-wrapper">
+                <input type="number" id="targetGross" placeholder="যেমন: 0" value="0" step="any">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="discount">ডিসকাউন্ট কত দেওয়া আছে (৳):</label>
+            <div class="input-wrapper">
+                <input type="number" id="discount" placeholder="যেমন: 0" value="0" step="any">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="quantity">পরিমাণ (Quantity):</label>
+            <div class="input-wrapper">
+                <input type="number" id="quantity" placeholder="যেমন: 1" value="1" step="any" min="1">
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label for="vatRate">ভ্যাট %:</label>
+            <div class="input-wrapper">
+                <input type="number" id="vatRate" value="4.5" step="0.1">
+            </div>
+        </div>
+
+        <button class="btn-calculate" onclick="calculate()">হিসাব করুন</button>
+
+        <div id="result" class="result-card" style="display: none;">
+            <div class="highlight-box">
+                <div class="highlight-title">প্রতিটি আইটেমে কত টাকা বসানো লাগবে (Per Unit Price)</div>
+                <div class="highlight-value" id="resUnitPrice">৳ 0.00</div>
+                <div class="unit-note" id="resUnitNote">(মোট সার্ভিস প্রাইস: ৳ 0.00)</div>
+            </div>
+
+            <div class="result-header">মূল্যের বিস্তারিত হিসাব (Price Info)</div>
+            
+            <div class="row">
+                <span>ইউনিট প্রতি সার্ভিস প্রাইস:</span>
+                <span id="resUnitPriceRow">0.00</span>
+            </div>
+            <div class="row">
+                <span>মোট সার্ভিস প্রাইস (<span id="resQtyText">1</span> টি আইটেম):</span>
+                <span id="resTotalServicePrice">0.00</span>
+            </div>
+            <div class="row">
+                <span>ভ্যাট (<span id="resVatPercent">4.5</span>%):</span>
+                <span>+ <span id="resVat">0.00</span></span>
+            </div>
+            <div class="row bold">
+                <span>মোট প্রাইস (Total Price):</span>
+                <span id="resTotalPrice">0.00</span>
+            </div>
+
+            <div class="result-header" style="margin-top: 16px;">ডিসকাউন্ট তথ্য (Discount Info)</div>
+            <div class="row">
+                <span>মোট ডিসকাউন্ট (Total Discount):</span>
+                <span>- <span id="resDiscount">0.00</span></span>
+            </div>
+
+            <div class="result-header" style="margin-top: 16px;">পেমেন্ট তথ্য (Payment Info)</div>
+            <div class="row gross">
+                <span>গ্রস অ্যামাউন্ট (Target Gross):</span>
+                <span id="resGross">৳ 0.00</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculate() {
+        const targetGross = parseFloat(document.getElementById('targetGross').value) || 0;
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const quantity = parseFloat(document.getElementById('quantity').value) || 1;
+        const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+
+        if (targetGross < 0 || quantity <= 0) {
+            alert("অনুগ্রহ করে সঠিক টাকার পরিমাণ ও পরিমাণ (Quantity) দিন।");
+            return;
+        }
+
+        const vatFactor = 1 + (vatRate / 100);
+        const totalServicePrice = (targetGross + discount) / vatFactor;
+        const unitServicePrice = totalServicePrice / quantity;
+        const vatAmount = totalServicePrice * (vatRate / 100);
+        const totalPrice = totalServicePrice + vatAmount;
+
+        document.getElementById('resUnitPrice').innerText = '৳ ' + unitServicePrice.toFixed(2);
+        document.getElementById('resUnitNote').innerText = `(মোট সার্ভিস প্রাইস: ৳ ${totalServicePrice.toFixed(2)})`;
+        document.getElementById('resUnitPriceRow').innerText = unitServicePrice.toFixed(2);
+        document.getElementById('resQtyText').innerText = quantity;
+        document.getElementById('resTotalServicePrice').innerText = totalServicePrice.toFixed(2);
+        document.getElementById('resVatPercent').innerText = vatRate;
+        document.getElementById('resVat').innerText = vatAmount.toFixed(2);
+        document.getElementById('resTotalPrice').innerText = totalPrice.toFixed(2);
+        document.getElementById('resDiscount').innerText = discount.toFixed(2);
+        document.getElementById('resGross').innerText = '৳ ' + targetGross.toFixed(2);
+
+        document.getElementById('result').style.display = 'block';
+    }
+
+    function toggleTheme() {
+        const body = document.documentElement;
+        const btn = document.getElementById('themeToggle');
+        if (body.getAttribute('data-theme') === 'dark') {
+            body.removeAttribute('data-theme');
+            btn.innerText = '🌙';
+        } else {
+            body.setAttribute('data-theme', 'dark');
+            btn.innerText = '☀️';
+        }
+    }
+
+    window.onload = calculate;
+</script>
+
+</body>
+</html>
