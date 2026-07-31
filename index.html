@@ -125,6 +125,11 @@
             margin-bottom: 8px;
         }
 
+        .input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
         .input-wrapper input {
             width: 100%;
             padding: 12px 14px;
@@ -136,7 +141,19 @@
             outline: none;
         }
 
-        .input-wrapper input:focus {
+        .input-wrapper select {
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1.5px solid var(--input-border);
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .input-wrapper input:focus, .input-wrapper select:focus {
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
         }
@@ -252,9 +269,13 @@
         </div>
 
         <div class="input-group">
-            <label for="discount">ডিসকাউন্ট কত দেওয়া আছে (৳):</label>
+            <label for="discount">ডিসকাউন্ট কত দেওয়া আছে:</label>
             <div class="input-wrapper">
                 <input type="number" id="discount" placeholder="যেমন: 0" value="0" step="any">
+                <select id="discountType" onchange="calculate()">
+                    <option value="fixed">Fixed (৳)</option>
+                    <option value="percent">% Rate</option>
+                </select>
             </div>
         </div>
 
@@ -302,7 +323,7 @@
 
             <div class="result-header" style="margin-top: 16px;">ডিসকাউন্ট তথ্য (Discount Info)</div>
             <div class="row">
-                <span>মোট ডিসকাউন্ট (Total Discount):</span>
+                <span>মোট ডিসকাউন্ট:</span>
                 <span>- <span id="resDiscount">0.00</span></span>
             </div>
 
@@ -318,7 +339,8 @@
 <script>
     function calculate() {
         const targetGross = parseFloat(document.getElementById('targetGross').value) || 0;
-        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const discountVal = parseFloat(document.getElementById('discount').value) || 0;
+        const discountType = document.getElementById('discountType').value;
         const quantity = parseFloat(document.getElementById('quantity').value) || 1;
         const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
 
@@ -328,7 +350,27 @@
         }
 
         const vatFactor = 1 + (vatRate / 100);
-        const totalServicePrice = (targetGross + discount) / vatFactor;
+        let totalServicePrice = 0;
+        let discountAmount = 0;
+
+        if (discountType === 'fixed') {
+            discountAmount = discountVal;
+            totalServicePrice = (targetGross + discountAmount) / vatFactor;
+        } else {
+            // Percent (%) logic:
+            // Target Gross = (Total Service Price * vatFactor) - (Total Service Price * discountVal / 100)
+            // Target Gross = Total Service Price * (vatFactor - discountVal / 100)
+            const netFactor = vatFactor - (discountVal / 100);
+            
+            if (netFactor <= 0) {
+                alert("ডিসকাউন্ট % ভ্যাটসহ মূল্যের সমপরিমাণ বা বেশি হতে পারে না।");
+                return;
+            }
+            
+            totalServicePrice = targetGross / netFactor;
+            discountAmount = totalServicePrice * (discountVal / 100);
+        }
+
         const unitServicePrice = totalServicePrice / quantity;
         const vatAmount = totalServicePrice * (vatRate / 100);
         const totalPrice = totalServicePrice + vatAmount;
@@ -341,7 +383,13 @@
         document.getElementById('resVatPercent').innerText = vatRate;
         document.getElementById('resVat').innerText = vatAmount.toFixed(2);
         document.getElementById('resTotalPrice').innerText = totalPrice.toFixed(2);
-        document.getElementById('resDiscount').innerText = discount.toFixed(2);
+        
+        if (discountType === 'percent') {
+            document.getElementById('resDiscount').innerText = `${discountAmount.toFixed(2)} (${discountVal}%)`;
+        } else {
+            document.getElementById('resDiscount').innerText = discountAmount.toFixed(2);
+        }
+        
         document.getElementById('resGross').innerText = '৳ ' + targetGross.toFixed(2);
 
         document.getElementById('result').style.display = 'block';
