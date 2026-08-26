@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="bn">
+<html lang="bn" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,6 +14,8 @@
             --input-border: #cbd5e0;
             --primary: #e74c3c;
             --primary-hover: #c0392b;
+            --secondary: #4a5568;
+            --secondary-hover: #2d3748;
             --accent-bg: #e6fffa;
             --accent-border: #38b2ac;
             --accent-text: #234e52;
@@ -31,6 +33,8 @@
             --input-border: #334155;
             --primary: #ef4444;
             --primary-hover: #dc2626;
+            --secondary: #475569;
+            --secondary-hover: #334155;
             --accent-bg: #064e3b;
             --accent-border: #059669;
             --accent-text: #a7f3d0;
@@ -158,8 +162,14 @@
             box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
         }
 
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
         button.btn-calculate {
-            width: 100%;
+            flex: 2;
             padding: 14px;
             background-color: var(--primary);
             color: white;
@@ -168,12 +178,27 @@
             font-size: 16px;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 10px;
             box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
         }
 
         button.btn-calculate:hover {
             background-color: var(--primary-hover);
+        }
+
+        button.btn-reset {
+            flex: 1;
+            padding: 14px;
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button.btn-reset:hover {
+            background-color: var(--secondary-hover);
         }
 
         .result-card {
@@ -182,6 +207,7 @@
             border: 1px solid var(--input-border);
             border-radius: 12px;
             padding: 18px;
+            position: relative;
         }
 
         .highlight-box {
@@ -249,13 +275,30 @@
             margin-top: 12px;
             margin-bottom: 0;
         }
+
+        button.btn-copy {
+            width: 100%;
+            padding: 10px;
+            margin-top: 14px;
+            background-color: var(--accent-border);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        button.btn-copy:hover {
+            opacity: 0.9;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="থিম পরিবর্তন করুন">🌙</button>
+        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="থিম পরিবর্তন করুন">☀️</button>
         <h2>Sheba.xyz Vat Calculator</h2>
         <p>সহজ টার্গেট বিল ও ভ্যাট ক্যালকুলেটর</p>
     </div>
@@ -293,7 +336,10 @@
             </div>
         </div>
 
-        <button class="btn-calculate" onclick="calculate()">হিসাব করুন</button>
+        <div class="btn-group">
+            <button class="btn-calculate" onclick="calculate()">হিসাব করুন</button>
+            <button class="btn-reset" onclick="resetForm()">রিসেট</button>
+        </div>
 
         <div id="result" class="result-card" style="display: none;">
             <div class="highlight-box">
@@ -332,6 +378,8 @@
                 <span>গ্রস অ্যামাউন্ট (Target Gross):</span>
                 <span id="resGross">৳ 0.00</span>
             </div>
+
+            <button class="btn-copy" id="copyBtn" onclick="copyResults()">📋 ফলাফল কপি করুন</button>
         </div>
     </div>
 </div>
@@ -357,9 +405,6 @@
             discountAmount = discountVal;
             totalServicePrice = (targetGross + discountAmount) / vatFactor;
         } else {
-            // Percent (%) logic:
-            // Target Gross = (Total Service Price * vatFactor) - (Total Service Price * discountVal / 100)
-            // Target Gross = Total Service Price * (vatFactor - discountVal / 100)
             const netFactor = vatFactor - (discountVal / 100);
             
             if (netFactor <= 0) {
@@ -395,6 +440,15 @@
         document.getElementById('result').style.display = 'block';
     }
 
+    function resetForm() {
+        document.getElementById('targetGross').value = '0';
+        document.getElementById('discount').value = '0';
+        document.getElementById('discountType').value = 'fixed';
+        document.getElementById('quantity').value = '1';
+        document.getElementById('vatRate').value = '4.5';
+        document.getElementById('result').style.display = 'none';
+    }
+
     function toggleTheme() {
         const body = document.documentElement;
         const btn = document.getElementById('themeToggle');
@@ -405,6 +459,35 @@
             body.setAttribute('data-theme', 'dark');
             btn.innerText = '☀️';
         }
+    }
+
+    function copyResults() {
+        const unitPrice = document.getElementById('resUnitPrice').innerText;
+        const totalService = document.getElementById('resTotalServicePrice').innerText;
+        const vat = document.getElementById('resVat').innerText;
+        const vatRate = document.getElementById('resVatPercent').innerText;
+        const totalPrice = document.getElementById('resTotalPrice').innerText;
+        const discount = document.getElementById('resDiscount').innerText;
+        const gross = document.getElementById('resGross').innerText;
+        const qty = document.getElementById('resQtyText').innerText;
+
+        const textToCopy = `--- Sheba.xyz Vat Calculation ---
+প্রতিটি আইটেমের সার্ভিস প্রাইস: ${unitPrice}
+পরিমাণ: ${qty} টি
+মোট সার্ভিস প্রাইস: ৳ ${totalService}
+ভ্যাট (${vatRate}%): + ৳ ${vat}
+মোট প্রাইস: ৳ ${totalPrice}
+মোট ডিসকাউন্ট: - ৳ ${discount}
+-------------------------------
+গ্রস অ্যামাউন্ট (Target Gross): ${gross}`;
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const copyBtn = document.getElementById('copyBtn');
+            copyBtn.innerText = '✅ কপি হয়েছে!';
+            setTimeout(() => {
+                copyBtn.innerText = '📋 ফলাফল কপি করুন';
+            }, 2000);
+        });
     }
 
     window.onload = calculate;
