@@ -218,6 +218,13 @@
             border-radius: 10px;
             margin-bottom: 18px;
             text-align: center;
+            cursor: pointer;
+            position: relative;
+            user-select: none;
+        }
+
+        .highlight-box:hover {
+            opacity: 0.95;
         }
 
         .highlight-title {
@@ -237,6 +244,20 @@
             font-weight: 600;
             margin-top: 4px;
             opacity: 0.85;
+        }
+
+        .quick-copy-toast {
+            display: none;
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: bold;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 4px 10px;
+            border-radius: 6px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .result-header {
@@ -342,10 +363,11 @@
         </div>
 
         <div id="result" class="result-card" style="display: none;">
-            <div class="highlight-box">
-                <div class="highlight-title">প্রতিটি আইটেমে কত টাকা বসানো লাগবে (Per Unit Price)</div>
+            <div class="highlight-box" onclick="copyUnitPriceOnly()" title="ক্লিক করে শুধু সংখ্যাটি কপি করুন">
+                <div class="highlight-title">প্রতিটি আইটেমে কত টাকা বসানো লাগবে (PER UNIT PRICE)</div>
                 <div class="highlight-value" id="resUnitPrice">৳ 0.00</div>
                 <div class="unit-note" id="resUnitNote">(মোট সার্ভিস প্রাইস: ৳ 0.00)</div>
+                <div class="quick-copy-toast" id="quickCopyToast">✓ সংখ্যাটি কপি হয়েছে!</div>
             </div>
 
             <div class="result-header">মূল্যের বিস্তারিত হিসাব (Price Info)</div>
@@ -379,7 +401,7 @@
                 <span id="resGross">৳ 0.00</span>
             </div>
 
-            <button class="btn-copy" id="copyBtn" onclick="copyResults()">📋 ফলাফল কপি করুন</button>
+            <button class="btn-copy" id="copyBtn" onclick="copyResults()">📋 সম্পূর্ণ ফলাফল কপি করুন</button>
         </div>
     </div>
 </div>
@@ -461,6 +483,22 @@
         }
     }
 
+    function copyUnitPriceOnly() {
+        const unitPriceText = document.getElementById('resUnitPrice').innerText;
+        // শুধু সংখ্যা ও দশমিক আলাদা করার ফিল্টার
+        const numberOnly = unitPriceText.replace(/[^0-9.]/g, ''); 
+
+        if (numberOnly) {
+            navigator.clipboard.writeText(numberOnly).then(() => {
+                const toast = document.getElementById('quickCopyToast');
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 1200);
+            });
+        }
+    }
+
     function copyResults() {
         const unitPrice = document.getElementById('resUnitPrice').innerText;
         const totalService = document.getElementById('resTotalServicePrice').innerText;
@@ -483,9 +521,9 @@
 
         navigator.clipboard.writeText(textToCopy).then(() => {
             const copyBtn = document.getElementById('copyBtn');
-            copyBtn.innerText = '✅ কপি হয়েছে!';
+            copyBtn.innerText = '✅ সম্পূর্ণ ফলাফল কপি হয়েছে!';
             setTimeout(() => {
-                copyBtn.innerText = '📋 ফলাফল কপি করুন';
+                copyBtn.innerText = '📋 সম্পূর্ণ ফলাফল কপি করুন';
             }, 2000);
         });
     }
