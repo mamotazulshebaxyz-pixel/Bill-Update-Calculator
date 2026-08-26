@@ -218,13 +218,7 @@
             border-radius: 10px;
             margin-bottom: 18px;
             text-align: center;
-            cursor: pointer;
             position: relative;
-            user-select: none;
-        }
-
-        .highlight-box:hover {
-            opacity: 0.95;
         }
 
         .highlight-title {
@@ -233,31 +227,50 @@
             text-transform: uppercase;
         }
 
+        /* পাশাপাশ ভ্যালু এবং বাটন সাজানোর জন্য ফ্লেক্সবক্স */
+        .value-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 6px;
+        }
+
         .highlight-value {
             font-size: 28px;
             font-weight: 800;
-            margin-top: 4px;
+        }
+
+        .btn-inline-copy {
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn-inline-copy:hover {
+            background: #7c3aed;
+            transform: translateY(-1px);
+        }
+
+        .btn-inline-copy:active {
+            transform: translateY(0);
         }
 
         .unit-note {
             font-size: 12px;
             font-weight: 600;
-            margin-top: 4px;
+            margin-top: 6px;
             opacity: 0.85;
-        }
-
-        .quick-copy-toast {
-            display: none;
-            font-size: 12px;
-            margin-top: 8px;
-            font-weight: bold;
-            color: #ffffff;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 4px 10px;
-            border-radius: 6px;
-            width: fit-content;
-            margin-left: auto;
-            margin-right: auto;
         }
 
         .result-header {
@@ -363,11 +376,18 @@
         </div>
 
         <div id="result" class="result-card" style="display: none;">
-            <div class="highlight-box" onclick="copyUnitPriceOnly()" title="ক্লিক করে শুধু সংখ্যাটি কপি করুন">
+            <div class="highlight-box">
                 <div class="highlight-title">প্রতিটি আইটেমে কত টাকা বসানো লাগবে (PER UNIT PRICE)</div>
-                <div class="highlight-value" id="resUnitPrice">৳ 0.00</div>
+                
+                <!-- পাশাপাশ ভ্যালু এবং নতুন কপি বাটন -->
+                <div class="value-wrapper">
+                    <span class="highlight-value" id="resUnitPrice">৳ 0.00</span>
+                    <button class="btn-inline-copy" id="inlineCopyBtn" onclick="copyUnitPriceOnly()">
+                        📋 Copy
+                    </button>
+                </div>
+
                 <div class="unit-note" id="resUnitNote">(মোট সার্ভিস প্রাইস: ৳ 0.00)</div>
-                <div class="quick-copy-toast" id="quickCopyToast">✓ সংখ্যাটি কপি হয়েছে!</div>
             </div>
 
             <div class="result-header">মূল্যের বিস্তারিত হিসাব (Price Info)</div>
@@ -490,11 +510,13 @@
 
         if (numberOnly) {
             navigator.clipboard.writeText(numberOnly).then(() => {
-                const toast = document.getElementById('quickCopyToast');
-                toast.style.display = 'block';
+                const btn = document.getElementById('inlineCopyBtn');
+                btn.innerHTML = '✓ Copied!';
+                btn.style.background = '#10b981';
                 setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 1200);
+                    btn.innerHTML = '📋 Copy';
+                    btn.style.background = '#8b5cf6';
+                }, 1500);
             });
         }
     }
@@ -515,7 +537,7 @@
 মোট সার্ভিস প্রাইস: ৳ ${totalService}
 ভ্যাট (${vatRate}%): + ৳ ${vat}
 মোট প্রাইস: ৳ ${totalPrice}
-মোট ডিসকাউন্ট: - ৳ ${discount}
+মোট ডিসকাウント: - ৳ ${discount}
 -------------------------------
 গ্রস অ্যামাউন্ট (Target Gross): ${gross}`;
 
