@@ -8,16 +8,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 sm:p-6">
-    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6 md:p-8">
+    <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl p-6 md:p-8">
         <h1 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-3 flex items-center justify-between">
             <span>Bill Update Calculator</span>
-            <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">v1.0</span>
+            <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">v1.1</span>
         </h1>
 
         <!-- Target Amount Section -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
-                <label class="block text-sm font-semibold text-blue-900">Target / Final Amount (تارگٹ অ্যামাউন্ট):</label>
+                <label class="block text-sm font-semibold text-blue-900">Target / Final Amount (টার্গেট অ্যামাউন্ট):</label>
                 <p class="text-xs text-blue-700">আপনি যে মোট অ্যামাউন্টটি চাচ্ছেন তা এখানে ইনপুট দিতে পারেন বা নিচে হিসাব দেখতে পারেন।</p>
             </div>
             <input type="number" id="targetAmount" placeholder="Target Amount" class="w-full sm:w-48 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 font-bold text-lg text-right" oninput="calculateAll()">
@@ -40,7 +40,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Material Price (BDT)</label>
-                    <input type="number" id="materialPrice" value="0" class="w-full px-3 py-2 border rounded bg-white" oninput="calculateAll()">
+                    <input type="number" id="materialPrice" placeholder="0" class="w-full px-3 py-2 border rounded bg-white" oninput="calculateAll()">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-600 mb-1">Material VAT (1.43%)</label>
@@ -58,111 +58,8 @@
             <h3 class="text-md font-semibold mb-3 border-b border-slate-700 pb-2">Calculation Summary</h3>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div>
-                    <span class="block text-slate-400 text-xs">Total Service Price</span>
-                    <span id="sumServiceSubtotal" class="text-lg font-bold">0.00</span>
+                    <span class="block text-slate-400 text-xs">Total Service Price (w/o VAT)</span>
+                    <span id="sumServiceSubtotal" class="text-lg font-bold">0.00 Tk</span>
                 </div>
                 <div>
-                    <span class="block text-slate-400 text-xs">Service VAT (4.5%)</span>
-                    <span id="sumServiceVat" class="text-lg font-bold">0.00</span>
-                </div>
-                <div>
-                    <span class="block text-slate-400 text-xs">Material + VAT (1.43%)</span>
-                    <span id="sumMaterialTotal" class="text-lg font-bold">0.00</span>
-                </div>
-                <div>
-                    <span class="block text-slate-400 text-xs">Calculated Grand Total</span>
-                    <span id="sumGrandTotal" class="text-xl font-extrabold text-emerald-400">0.00</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Initial sample row
-        window.onload = function() {
-            addServiceRow("AC Jet Wash", 1250, 1, 457);
-            addServiceRow("AC GAS Charge", 2633, 1, 0);
-        };
-
-        function addServiceRow(name = "", unitPrice = 0, units = 1, discount = 0) {
-            const container = document.getElementById("serviceRowsContainer");
-            const rowId = Date.now() + Math.random();
-            
-            const rowDiv = document.createElement("div");
-            rowDiv.className = "grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-3 rounded-lg border shadow-sm service-row";
-            rowDiv.setAttribute("data-id", rowId);
-
-            rowDiv.innerHTML = `
-                <div class="sm:col-span-3">
-                    <label class="block text-[10px] text-slate-500 sm:hidden">Service Name</label>
-                    <input type="text" placeholder="Service Name" value="${name}" class="w-full px-2 py-1.5 text-sm border rounded service-name">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-[10px] text-slate-500 sm:hidden">Unit Price</label>
-                    <input type="number" placeholder="Unit Price" value="${unitPrice}" class="w-full px-2 py-1.5 text-sm border rounded unit-price" oninput="calculateAll()">
-                </div>
-                <div class="sm:col-span-1">
-                    <label class="block text-[10px] text-slate-500 sm:hidden">Units</label>
-                    <input type="number" placeholder="Units" value="${units}" class="w-full px-2 py-1.5 text-sm border rounded units" oninput="calculateAll()">
-                </div>
-                <div class="sm:col-span-2">
-                    <label class="block text-[10px] text-slate-500 sm:hidden">Service Discount</label>
-                    <input type="number" placeholder="Discount" value="${discount}" class="w-full px-2 py-1.5 text-sm border rounded service-discount" oninput="calculateAll()">
-                </div>
-                <div class="sm:col-span-3">
-                    <label class="block text-[10px] text-slate-500 sm:hidden">Total Price</label>
-                    <input type="text" readonly placeholder="Total" class="w-full px-2 py-1.5 text-sm border rounded bg-slate-100 font-medium row-total">
-                </div>
-                <div class="sm:col-span-1 flex justify-end">
-                    <button onclick="removeServiceRow(this)" class="text-red-500 hover:text-red-700 text-sm p-1 font-bold">✕</button>
-                </div>
-            `;
-            container.appendChild(rowDiv);
-            calculateAll();
-        }
-
-        function removeServiceRow(btn) {
-            btn.closest('.service-row').remove();
-            calculateAll();
-        }
-
-        function calculateAll() {
-            const rows = document.querySelectorAll('.service-row');
-            let totalServiceSubtotal = 0;
-
-            rows.forEach(row => {
-                const unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
-                const units = parseFloat(row.querySelector('.units').value) || 0;
-                const discount = parseFloat(row.querySelector('.service-discount').value) || 0;
-
-                // Price calculation per row (Unit Price * Units - Discount)
-                let rowTotal = (unitPrice * units) - discount;
-                if (rowTotal < 0) rowTotal = 0;
-
-                row.querySelector('.row-total').value = rowTotal.toFixed(2);
-                totalServiceSubtotal += rowTotal;
-            });
-
-            // Service VAT @ 4.5%
-            const serviceVat = totalServiceSubtotal * 0.045;
-
-            // Material Calculation @ 1.43%
-            const materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
-            const materialVat = materialPrice * 0.0143;
-            const materialTotalWithVat = materialPrice + materialVat;
-
-            document.getElementById('materialVatDisplay').value = materialVat.toFixed(2);
-            document.getElementById('materialTotalDisplay').value = materialTotalWithVat.toFixed(2);
-
-            // Grand Total Calculation
-            const grandTotal = totalServiceSubtotal + serviceVat + materialTotalWithVat;
-
-            // Update Summary Display
-            document.getElementById('sumServiceSubtotal').innerText = totalServiceSubtotal.toFixed(2) + " Tk";
-            document.getElementById('sumServiceVat').innerText = serviceVat.toFixed(2) + " Tk";
-            document.getElementById('sumMaterialTotal').innerText = materialTotalWithVat.toFixed(2) + " Tk";
-            document.getElementById('sumGrandTotal').innerText = grandTotal.toFixed(2) + " Tk";
-        }
-    </script>
-</body>
-</html>
+                    <span class="block text-slate-400 text-xs
