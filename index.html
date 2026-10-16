@@ -1,557 +1,168 @@
 <!DOCTYPE html>
-<html lang="bn" data-theme="dark">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sheba.xyz Vat Calculator</title>
-    <style>
-        :root {
-            --bg-color: #f0f3f8;
-            --card-bg: #ffffff;
-            --text-color: #2d3748;
-            --text-muted: #718096;
-            --input-bg: #ffffff;
-            --input-border: #cbd5e0;
-            --primary: #e74c3c;
-            --primary-hover: #c0392b;
-            --secondary: #4a5568;
-            --secondary-hover: #2d3748;
-            --accent-bg: #e6fffa;
-            --accent-border: #38b2ac;
-            --accent-text: #234e52;
-            --result-bg: #f8fafc;
-            --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
-            --header-bg: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        [data-theme="dark"] {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --text-color: #f1f5f9;
-            --text-muted: #94a3b8;
-            --input-bg: #0f172a;
-            --input-border: #334155;
-            --primary: #ef4444;
-            --primary-hover: #dc2626;
-            --secondary: #475569;
-            --secondary-hover: #334155;
-            --accent-bg: #064e3b;
-            --accent-border: #059669;
-            --accent-text: #a7f3d0;
-            --result-bg: #111827;
-            --card-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-            --header-bg: linear-gradient(135deg, #b91c1c 0%, #7f1d1d 100%);
-        }
-
-        * {
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            width: 100%;
-            max-width: 450px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .header {
-            background: var(--header-bg);
-            color: white;
-            padding: 24px;
-            text-align: center;
-            position: relative;
-        }
-
-        .header h2 {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-        }
-
-        .header p {
-            margin: 6px 0 0;
-            font-size: 14px;
-            opacity: 0.92;
-            font-weight: 500;
-        }
-
-        .theme-toggle {
-            position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            backdrop-filter: blur(4px);
-        }
-
-        .theme-toggle:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .content {
-            padding: 24px;
-        }
-
-        .input-group {
-            margin-bottom: 18px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-color);
-            margin-bottom: 8px;
-        }
-
-        .input-wrapper {
-            display: flex;
-            gap: 8px;
-        }
-
-        .input-wrapper input {
-            width: 100%;
-            padding: 12px 14px;
-            font-size: 16px;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            border: 1.5px solid var(--input-border);
-            border-radius: 10px;
-            outline: none;
-        }
-
-        .input-wrapper select {
-            padding: 12px;
-            font-size: 14px;
-            font-weight: 600;
-            background-color: var(--input-bg);
-            color: var(--text-color);
-            border: 1.5px solid var(--input-border);
-            border-radius: 10px;
-            outline: none;
-            cursor: pointer;
-        }
-
-        .input-wrapper input:focus, .input-wrapper select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.2);
-        }
-
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        button.btn-calculate {
-            flex: 2;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
-        }
-
-        button.btn-calculate:hover {
-            background-color: var(--primary-hover);
-        }
-
-        button.btn-reset {
-            flex: 1;
-            padding: 14px;
-            background-color: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        button.btn-reset:hover {
-            background-color: var(--secondary-hover);
-        }
-
-        .result-card {
-            margin-top: 24px;
-            background: var(--result-bg);
-            border: 1px solid var(--input-border);
-            border-radius: 12px;
-            padding: 18px;
-            position: relative;
-        }
-
-        .highlight-box {
-            background: var(--accent-bg);
-            border: 1.5px solid var(--accent-border);
-            color: var(--accent-text);
-            padding: 16px;
-            border-radius: 10px;
-            margin-bottom: 18px;
-            text-align: center;
-            position: relative;
-        }
-
-        .highlight-title {
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        /* পাশাপাশ ভ্যালু এবং বাটন সাজানোর জন্য ফ্লেক্সবক্স */
-        .value-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 6px;
-        }
-
-        .highlight-value {
-            font-size: 28px;
-            font-weight: 800;
-        }
-
-        .btn-inline-copy {
-            background: #8b5cf6;
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
-            transition: all 0.2s ease;
-        }
-
-        .btn-inline-copy:hover {
-            background: #7c3aed;
-            transform: translateY(-1px);
-        }
-
-        .btn-inline-copy:active {
-            transform: translateY(0);
-        }
-
-        .unit-note {
-            font-size: 12px;
-            font-weight: 600;
-            margin-top: 6px;
-            opacity: 0.85;
-        }
-
-        .result-header {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--input-border);
-            padding-bottom: 6px;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-            margin-bottom: 10px;
-            color: var(--text-color);
-        }
-
-        .row.bold {
-            font-weight: 700;
-            border-top: 1px dashed var(--input-border);
-            padding-top: 10px;
-            margin-top: 10px;
-        }
-
-        .row.gross {
-            background: rgba(239, 68, 68, 0.1);
-            padding: 10px;
-            border-radius: 8px;
-            color: var(--primary);
-            font-weight: 700;
-            font-size: 15px;
-            margin-top: 12px;
-            margin-bottom: 0;
-        }
-
-        button.btn-copy {
-            width: 100%;
-            padding: 10px;
-            margin-top: 14px;
-            background-color: var(--accent-border);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        button.btn-copy:hover {
-            opacity: 0.9;
-        }
-    </style>
+    <title>Bill Update & Target Calculator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen p-4 sm:p-6">
+    <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-xl p-6 md:p-8">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-3 flex items-center justify-between">
+            <span>Bill Update Calculator</span>
+            <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">v1.0</span>
+        </h1>
 
-<div class="container">
-    <div class="header">
-        <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="থিম পরিবর্তন করুন">☀️</button>
-        <h2>Sheba.xyz Vat Calculator</h2>
-        <p>সহজ টার্গেট বিল ও ভ্যাট ক্যালকুলেটর</p>
-    </div>
-    
-    <div class="content">
-        <div class="input-group">
-            <label for="targetGross">মোট কত বিল বানাতে হবে (৳):</label>
-            <div class="input-wrapper">
-                <input type="number" id="targetGross" placeholder="যেমন: 0" value="0" step="any">
+        <!-- Target Amount Section -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <label class="block text-sm font-semibold text-blue-900">Target / Final Amount (تارگٹ অ্যামাউন্ট):</label>
+                <p class="text-xs text-blue-700">আপনি যে মোট অ্যামাউন্টটি চাচ্ছেন তা এখানে ইনপুট দিতে পারেন বা নিচে হিসাব দেখতে পারেন।</p>
+            </div>
+            <input type="number" id="targetAmount" placeholder="Target Amount" class="w-full sm:w-48 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 font-bold text-lg text-right" oninput="calculateAll()">
+        </div>
+
+        <!-- Services Section -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-semibold text-slate-700">Service Categories</h2>
+                <button onclick="addServiceRow()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-3 py-1.5 rounded shadow transition">+ Add Service</button>
+            </div>
+            <div id="serviceRowsContainer" class="space-y-3">
+                <!-- Dynamic Service Rows will go here -->
             </div>
         </div>
 
-        <div class="input-group">
-            <label for="discount">ডিসকাউন্ট কত দেওয়া আছে:</label>
-            <div class="input-wrapper">
-                <input type="number" id="discount" placeholder="যেমন: 0" value="0" step="any">
-                <select id="discountType" onchange="calculate()">
-                    <option value="fixed">Fixed (৳)</option>
-                    <option value="percent">% Rate</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label for="quantity">পরিমাণ (Quantity):</label>
-            <div class="input-wrapper">
-                <input type="number" id="quantity" placeholder="যেমন: 1" value="1" step="any" min="1">
-            </div>
-        </div>
-
-        <div class="input-group">
-            <label for="vatRate">ভ্যাট %:</label>
-            <div class="input-wrapper">
-                <input type="number" id="vatRate" value="4.5" step="0.1">
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button class="btn-calculate" onclick="calculate()">হিসাব করুন</button>
-            <button class="btn-reset" onclick="resetForm()">রিসেট</button>
-        </div>
-
-        <div id="result" class="result-card" style="display: none;">
-            <div class="highlight-box">
-                <div class="highlight-title">প্রতিটি আইটেমে কত টাকা বসানো লাগবে (PER UNIT PRICE)</div>
-                
-                <!-- পাশাপাশ ভ্যালু এবং নতুন কপি বাটন -->
-                <div class="value-wrapper">
-                    <span class="highlight-value" id="resUnitPrice">৳ 0.00</span>
-                    <button class="btn-inline-copy" id="inlineCopyBtn" onclick="copyUnitPriceOnly()">
-                        📋 Copy
-                    </button>
+        <!-- Material Section -->
+        <div class="mb-6 bg-slate-50 p-4 rounded-lg border">
+            <h2 class="text-lg font-semibold text-slate-700 mb-3">Materials Option</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Material Price (BDT)</label>
+                    <input type="number" id="materialPrice" value="0" class="w-full px-3 py-2 border rounded bg-white" oninput="calculateAll()">
                 </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Material VAT (1.43%)</label>
+                    <input type="text" id="materialVatDisplay" readonly class="w-full px-3 py-2 border rounded bg-slate-100 text-slate-700 font-semibold" value="0.00">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Total Material with VAT</label>
+                    <input type="text" id="materialTotalDisplay" readonly class="w-full px-3 py-2 border rounded bg-slate-100 text-slate-700 font-semibold" value="0.00">
+                </div>
+            </div>
+        </div>
 
-                <div class="unit-note" id="resUnitNote">(মোট সার্ভিস প্রাইস: ৳ 0.00)</div>
+        <!-- Summary / Calculation Result Box -->
+        <div class="bg-slate-800 text-white rounded-lg p-5">
+            <h3 class="text-md font-semibold mb-3 border-b border-slate-700 pb-2">Calculation Summary</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div>
+                    <span class="block text-slate-400 text-xs">Total Service Price</span>
+                    <span id="sumServiceSubtotal" class="text-lg font-bold">0.00</span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 text-xs">Service VAT (4.5%)</span>
+                    <span id="sumServiceVat" class="text-lg font-bold">0.00</span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 text-xs">Material + VAT (1.43%)</span>
+                    <span id="sumMaterialTotal" class="text-lg font-bold">0.00</span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 text-xs">Calculated Grand Total</span>
+                    <span id="sumGrandTotal" class="text-xl font-extrabold text-emerald-400">0.00</span>
+                </div>
             </div>
-
-            <div class="result-header">মূল্যের বিস্তারিত হিসাব (Price Info)</div>
-            
-            <div class="row">
-                <span>ইউনিট প্রতি সার্ভিস প্রাইস:</span>
-                <span id="resUnitPriceRow">0.00</span>
-            </div>
-            <div class="row">
-                <span>মোট সার্ভিস প্রাইস (<span id="resQtyText">1</span> টি আইটেম):</span>
-                <span id="resTotalServicePrice">0.00</span>
-            </div>
-            <div class="row">
-                <span>ভ্যাট (<span id="resVatPercent">4.5</span>%):</span>
-                <span>+ <span id="resVat">0.00</span></span>
-            </div>
-            <div class="row bold">
-                <span>মোট প্রাইস (Total Price):</span>
-                <span id="resTotalPrice">0.00</span>
-            </div>
-
-            <div class="result-header" style="margin-top: 16px;">ডিসকাউন্ট তথ্য (Discount Info)</div>
-            <div class="row">
-                <span>মোট ডিসকাউন্ট:</span>
-                <span>- <span id="resDiscount">0.00</span></span>
-            </div>
-
-            <div class="result-header" style="margin-top: 16px;">পেমেন্ট তথ্য (Payment Info)</div>
-            <div class="row gross">
-                <span>গ্রস অ্যামাউন্ট (Target Gross):</span>
-                <span id="resGross">৳ 0.00</span>
-            </div>
-
-            <button class="btn-copy" id="copyBtn" onclick="copyResults()">📋 সম্পূর্ণ ফলাফল কপি করুন</button>
         </div>
     </div>
-</div>
 
-<script>
-    function calculate() {
-        const targetGross = parseFloat(document.getElementById('targetGross').value) || 0;
-        const discountVal = parseFloat(document.getElementById('discount').value) || 0;
-        const discountType = document.getElementById('discountType').value;
-        const quantity = parseFloat(document.getElementById('quantity').value) || 1;
-        const vatRate = parseFloat(document.getElementById('vatRate').value) || 0;
+    <script>
+        // Initial sample row
+        window.onload = function() {
+            addServiceRow("AC Jet Wash", 1250, 1, 457);
+            addServiceRow("AC GAS Charge", 2633, 1, 0);
+        };
 
-        if (targetGross < 0 || quantity <= 0) {
-            alert("অনুগ্রহ করে সঠিক টাকার পরিমাণ ও পরিমাণ (Quantity) দিন।");
-            return;
-        }
-
-        const vatFactor = 1 + (vatRate / 100);
-        let totalServicePrice = 0;
-        let discountAmount = 0;
-
-        if (discountType === 'fixed') {
-            discountAmount = discountVal;
-            totalServicePrice = (targetGross + discountAmount) / vatFactor;
-        } else {
-            const netFactor = vatFactor - (discountVal / 100);
+        function addServiceRow(name = "", unitPrice = 0, units = 1, discount = 0) {
+            const container = document.getElementById("serviceRowsContainer");
+            const rowId = Date.now() + Math.random();
             
-            if (netFactor <= 0) {
-                alert("ডিসকাউন্ট % ভ্যাটসহ মূল্যের সমপরিমাণ বা বেশি হতে পারে না।");
-                return;
-            }
-            
-            totalServicePrice = targetGross / netFactor;
-            discountAmount = totalServicePrice * (discountVal / 100);
+            const rowDiv = document.createElement("div");
+            rowDiv.className = "grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-3 rounded-lg border shadow-sm service-row";
+            rowDiv.setAttribute("data-id", rowId);
+
+            rowDiv.innerHTML = `
+                <div class="sm:col-span-3">
+                    <label class="block text-[10px] text-slate-500 sm:hidden">Service Name</label>
+                    <input type="text" placeholder="Service Name" value="${name}" class="w-full px-2 py-1.5 text-sm border rounded service-name">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-[10px] text-slate-500 sm:hidden">Unit Price</label>
+                    <input type="number" placeholder="Unit Price" value="${unitPrice}" class="w-full px-2 py-1.5 text-sm border rounded unit-price" oninput="calculateAll()">
+                </div>
+                <div class="sm:col-span-1">
+                    <label class="block text-[10px] text-slate-500 sm:hidden">Units</label>
+                    <input type="number" placeholder="Units" value="${units}" class="w-full px-2 py-1.5 text-sm border rounded units" oninput="calculateAll()">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-[10px] text-slate-500 sm:hidden">Service Discount</label>
+                    <input type="number" placeholder="Discount" value="${discount}" class="w-full px-2 py-1.5 text-sm border rounded service-discount" oninput="calculateAll()">
+                </div>
+                <div class="sm:col-span-3">
+                    <label class="block text-[10px] text-slate-500 sm:hidden">Total Price</label>
+                    <input type="text" readonly placeholder="Total" class="w-full px-2 py-1.5 text-sm border rounded bg-slate-100 font-medium row-total">
+                </div>
+                <div class="sm:col-span-1 flex justify-end">
+                    <button onclick="removeServiceRow(this)" class="text-red-500 hover:text-red-700 text-sm p-1 font-bold">✕</button>
+                </div>
+            `;
+            container.appendChild(rowDiv);
+            calculateAll();
         }
 
-        const unitServicePrice = totalServicePrice / quantity;
-        const vatAmount = totalServicePrice * (vatRate / 100);
-        const totalPrice = totalServicePrice + vatAmount;
-
-        document.getElementById('resUnitPrice').innerText = '৳ ' + unitServicePrice.toFixed(2);
-        document.getElementById('resUnitNote').innerText = `(মোট সার্ভিস প্রাইস: ৳ ${totalServicePrice.toFixed(2)})`;
-        document.getElementById('resUnitPriceRow').innerText = unitServicePrice.toFixed(2);
-        document.getElementById('resQtyText').innerText = quantity;
-        document.getElementById('resTotalServicePrice').innerText = totalServicePrice.toFixed(2);
-        document.getElementById('resVatPercent').innerText = vatRate;
-        document.getElementById('resVat').innerText = vatAmount.toFixed(2);
-        document.getElementById('resTotalPrice').innerText = totalPrice.toFixed(2);
-        
-        if (discountType === 'percent') {
-            document.getElementById('resDiscount').innerText = `${discountAmount.toFixed(2)} (${discountVal}%)`;
-        } else {
-            document.getElementById('resDiscount').innerText = discountAmount.toFixed(2);
+        function removeServiceRow(btn) {
+            btn.closest('.service-row').remove();
+            calculateAll();
         }
-        
-        document.getElementById('resGross').innerText = '৳ ' + targetGross.toFixed(2);
 
-        document.getElementById('result').style.display = 'block';
-    }
+        function calculateAll() {
+            const rows = document.querySelectorAll('.service-row');
+            let totalServiceSubtotal = 0;
 
-    function resetForm() {
-        document.getElementById('targetGross').value = '0';
-        document.getElementById('discount').value = '0';
-        document.getElementById('discountType').value = 'fixed';
-        document.getElementById('quantity').value = '1';
-        document.getElementById('vatRate').value = '4.5';
-        document.getElementById('result').style.display = 'none';
-    }
+            rows.forEach(row => {
+                const unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
+                const units = parseFloat(row.querySelector('.units').value) || 0;
+                const discount = parseFloat(row.querySelector('.service-discount').value) || 0;
 
-    function toggleTheme() {
-        const body = document.documentElement;
-        const btn = document.getElementById('themeToggle');
-        if (body.getAttribute('data-theme') === 'dark') {
-            body.removeAttribute('data-theme');
-            btn.innerText = '🌙';
-        } else {
-            body.setAttribute('data-theme', 'dark');
-            btn.innerText = '☀️';
-        }
-    }
+                // Price calculation per row (Unit Price * Units - Discount)
+                let rowTotal = (unitPrice * units) - discount;
+                if (rowTotal < 0) rowTotal = 0;
 
-    function copyUnitPriceOnly() {
-        const unitPriceText = document.getElementById('resUnitPrice').innerText;
-        // শুধু সংখ্যা ও দশমিক আলাদা করার ফিল্টার
-        const numberOnly = unitPriceText.replace(/[^0-9.]/g, ''); 
-
-        if (numberOnly) {
-            navigator.clipboard.writeText(numberOnly).then(() => {
-                const btn = document.getElementById('inlineCopyBtn');
-                btn.innerHTML = '✓ Copied!';
-                btn.style.background = '#10b981';
-                setTimeout(() => {
-                    btn.innerHTML = '📋 Copy';
-                    btn.style.background = '#8b5cf6';
-                }, 1500);
+                row.querySelector('.row-total').value = rowTotal.toFixed(2);
+                totalServiceSubtotal += rowTotal;
             });
+
+            // Service VAT @ 4.5%
+            const serviceVat = totalServiceSubtotal * 0.045;
+
+            // Material Calculation @ 1.43%
+            const materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
+            const materialVat = materialPrice * 0.0143;
+            const materialTotalWithVat = materialPrice + materialVat;
+
+            document.getElementById('materialVatDisplay').value = materialVat.toFixed(2);
+            document.getElementById('materialTotalDisplay').value = materialTotalWithVat.toFixed(2);
+
+            // Grand Total Calculation
+            const grandTotal = totalServiceSubtotal + serviceVat + materialTotalWithVat;
+
+            // Update Summary Display
+            document.getElementById('sumServiceSubtotal').innerText = totalServiceSubtotal.toFixed(2) + " Tk";
+            document.getElementById('sumServiceVat').innerText = serviceVat.toFixed(2) + " Tk";
+            document.getElementById('sumMaterialTotal').innerText = materialTotalWithVat.toFixed(2) + " Tk";
+            document.getElementById('sumGrandTotal').innerText = grandTotal.toFixed(2) + " Tk";
         }
-    }
-
-    function copyResults() {
-        const unitPrice = document.getElementById('resUnitPrice').innerText;
-        const totalService = document.getElementById('resTotalServicePrice').innerText;
-        const vat = document.getElementById('resVat').innerText;
-        const vatRate = document.getElementById('resVatPercent').innerText;
-        const totalPrice = document.getElementById('resTotalPrice').innerText;
-        const discount = document.getElementById('resDiscount').innerText;
-        const gross = document.getElementById('resGross').innerText;
-        const qty = document.getElementById('resQtyText').innerText;
-
-        const textToCopy = `--- Sheba.xyz Vat Calculation ---
-প্রতিটি আইটেমের সার্ভিস প্রাইস: ${unitPrice}
-পরিমাণ: ${qty} টি
-মোট সার্ভিস প্রাইস: ৳ ${totalService}
-ভ্যাট (${vatRate}%): + ৳ ${vat}
-মোট প্রাইস: ৳ ${totalPrice}
-মোট ডিসকাウント: - ৳ ${discount}
--------------------------------
-গ্রস অ্যামাউন্ট (Target Gross): ${gross}`;
-
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            const copyBtn = document.getElementById('copyBtn');
-            copyBtn.innerText = '✅ সম্পূর্ণ ফলাফল কপি হয়েছে!';
-            setTimeout(() => {
-                copyBtn.innerText = '📋 সম্পূর্ণ ফলাফল কপি করুন';
-            }, 2000);
-        });
-    }
-
-    window.onload = calculate;
-</script>
-
+    </script>
 </body>
 </html>
