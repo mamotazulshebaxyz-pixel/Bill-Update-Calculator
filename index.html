@@ -8,19 +8,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-100 min-h-screen p-4 sm:p-6">
-    <div class="max-w-5xl mx-auto bg-white shadow-lg rounded-xl p-6 md:p-8">
+    <div class="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6 md:p-8">
         <h1 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-3 flex items-center justify-between">
             <span>Bill Update Calculator</span>
-            <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">v1.1</span>
+            <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">v1.2 (Auto Target Match)</span>
         </h1>
 
         <!-- Target Amount Section -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
             <div>
                 <label class="block text-sm font-semibold text-blue-900">Target / Final Amount (টার্গেট অ্যামাউন্ট):</label>
-                <p class="text-xs text-blue-700">আপনি যে মোট অ্যামাউন্টটি চাচ্ছেন তা এখানে ইনপুট দিতে পারেন বা নিচে হিসাব দেখতে পারেন।</p>
+                <p class="text-xs text-blue-700">আপনি যে মোট অ্যামাউন্টটি মেলাতে চান তা এখানে ইনপুট দিন এবং লাইনের 🎯 বাটনে চাপুন।</p>
             </div>
-            <input type="number" id="targetAmount" placeholder="Target Amount" class="w-full sm:w-48 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 font-bold text-lg text-right" oninput="calculateAll()">
+            <input type="number" id="targetAmount" placeholder="e.g. 3981" class="w-full sm:w-48 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 font-bold text-lg text-right text-blue-900" oninput="calculateAll()">
         </div>
 
         <!-- Services Section -->
@@ -104,7 +104,7 @@
                     '<label class="block text-[10px] text-slate-500 sm:hidden">Units</label>' +
                     '<input type="number" placeholder="Units" value="' + units + '" class="w-full px-2 py-1.5 text-sm border rounded units" oninput="calculateAll()">' +
                 '</div>' +
-                '<div class="sm:col-span-2">' +
+                '<div class="sm:col-span-1">' +
                     '<label class="block text-[10px] text-slate-500 sm:hidden">Discount</label>' +
                     '<input type="number" placeholder="Discount" value="' + discount + '" class="w-full px-2 py-1.5 text-sm border rounded service-discount" oninput="calculateAll()">' +
                 '</div>' +
@@ -116,8 +116,9 @@
                     '<label class="block text-[10px] text-slate-500 sm:hidden">Total Price (incl. VAT)</label>' +
                     '<input type="text" readonly placeholder="Total" class="w-full px-2 py-1.5 text-sm border rounded bg-slate-100 font-semibold text-slate-800 row-total">' +
                 '</div>' +
-                '<div class="sm:col-span-1 flex justify-end">' +
-                    '<button type="button" onclick="removeServiceRow(this)" class="text-red-500 hover:text-red-700 text-sm p-1 font-bold">✕</button>' +
+                '<div class="sm:col-span-2 flex justify-end gap-1">' +
+                    '<button type="button" onclick="adjustRowToTarget(this)" title="Adjust this row to match Target Amount" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 rounded shadow flex items-center gap-1 font-medium">🎯 Auto</button>' +
+                    '<button type="button" onclick="removeServiceRow(this)" class="text-red-500 hover:text-red-700 text-sm px-1 font-bold">✕</button>' +
                 '</div>';
 
             container.appendChild(rowDiv);
@@ -139,7 +140,7 @@
 
             rows.forEach(function(row) {
                 var unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
-                var units = parseFloat(row.querySelector('.units').value) || 0;
+                var units = parseFloat(row.querySelector('.units').value) || 1;
                 var discount = parseFloat(row.querySelector('.service-discount').value) || 0;
 
                 var subtotal = (unitPrice * units) - discount;
@@ -168,6 +169,61 @@
             document.getElementById('sumServiceVat').innerText = totalServiceVat.toFixed(2) + " Tk";
             document.getElementById('sumMaterialTotal').innerText = materialTotalWithVat.toFixed(2) + " Tk";
             document.getElementById('sumGrandTotal').innerText = grandTotal.toFixed(2) + " Tk";
+        }
+
+        function adjustRowToTarget(btn) {
+            var targetInput = document.getElementById('targetAmount').value;
+            var targetAmount = parseFloat(targetInput);
+
+            if (isNaN(targetAmount) || targetAmount <= 0) {
+                alert("দয়া করে প্রথমে 'Target / Final Amount' বক্সে একটি সঠিক টার্গেট অ্যামাউন্ট লিখুন।");
+                return;
+            }
+
+            // Calculate current total excluding selected row
+            var targetRow = btn.closest('.service-row');
+            var rows = document.querySelectorAll('.service-row');
+            var otherRowsTotalWithVat = 0;
+
+            rows.forEach(function(row) {
+                if (row !== targetRow) {
+                    var unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
+                    var units = parseFloat(row.querySelector('.units').value) || 1;
+                    var discount = parseFloat(row.querySelector('.service-discount').value) || 0;
+
+                    var subtotal = (unitPrice * units) - discount;
+                    if (subtotal < 0) subtotal = 0;
+                    var vat = subtotal * 0.045;
+                    otherRowsTotalWithVat += (subtotal + vat);
+                }
+            });
+
+            var materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
+            var materialTotalWithVat = materialPrice + (materialPrice * 0.0143);
+
+            // Remaining amount needed from this row (including 4.5% VAT)
+            var neededRowTotalWithVat = targetAmount - (otherRowsTotalWithVat + materialTotalWithVat);
+
+            if (neededRowTotalWithVat < 0) {
+                alert("Target Amount অত্যন্ত কম, অন্য লাইনের যোগফল টার্গেটের চেয়ে বেশি হয়ে গেছে!");
+                return;
+            }
+
+            var units = parseFloat(targetRow.querySelector('.units').value) || 1;
+            var discount = parseFloat(targetRow.querySelector('.service-discount').value) || 0;
+
+            // Reversing 4.5% VAT: Needed Subtotal = TotalWithVat / 1.045
+            var neededSubtotal = neededRowTotalWithVat / 1.045;
+
+            // Unit Price = (Needed Subtotal + Discount) / Units
+            var calculatedUnitPrice = (neededSubtotal + discount) / units;
+
+            if (calculatedUnitPrice < 0) calculatedUnitPrice = 0;
+
+            // Set calculated unit price (rounded to 2 decimal places)
+            targetRow.querySelector('.unit-price').value = calculatedUnitPrice.toFixed(2);
+
+            calculateAll();
         }
 
         window.onload = function() {
