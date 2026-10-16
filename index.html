@@ -27,7 +27,7 @@
         <div class="mb-6">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-lg font-semibold text-slate-700">Service Categories</h2>
-                <button onclick="addServiceRow()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-3 py-1.5 rounded shadow transition">+ Add Service</button>
+                <button type="button" onclick="addServiceRow()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-3 py-1.5 rounded shadow transition">+ Add Service</button>
             </div>
             <div id="serviceRowsContainer" class="space-y-3">
                 <!-- Dynamic Service Rows will go here -->
@@ -62,4 +62,117 @@
                     <span id="sumServiceSubtotal" class="text-lg font-bold">0.00 Tk</span>
                 </div>
                 <div>
-                    <span class="block text-slate-400 text-xs
+                    <span class="block text-slate-400 text-xs">Total Service VAT (4.5%)</span>
+                    <span id="sumServiceVat" class="text-lg font-bold">0.00 Tk</span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 text-xs">Material + VAT (1.43%)</span>
+                    <span id="sumMaterialTotal" class="text-lg font-bold">0.00 Tk</span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 text-xs">Calculated Grand Total</span>
+                    <span id="sumGrandTotal" class="text-xl font-extrabold text-emerald-400">0.00 Tk</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addServiceRow(name, unitPrice, units, discount) {
+            if (name === undefined) name = "";
+            if (unitPrice === undefined) unitPrice = "";
+            if (units === undefined) units = 1;
+            if (discount === undefined) discount = "";
+
+            var container = document.getElementById("serviceRowsContainer");
+            var rowId = Date.now() + Math.random();
+            
+            var rowDiv = document.createElement("div");
+            rowDiv.className = "grid grid-cols-1 sm:grid-cols-12 gap-2 items-center bg-white p-3 rounded-lg border shadow-sm service-row";
+            rowDiv.setAttribute("data-id", rowId);
+
+            rowDiv.innerHTML = 
+                '<div class="sm:col-span-3">' +
+                    '<label class="block text-[10px] text-slate-500 sm:hidden">Service Name</label>' +
+                    '<input type="text" placeholder="Service Name" value="' + name + '" class="w-full px-2 py-1.5 text-sm border rounded service-name">' +
+                '</div>' +
+                '<div class="sm:col-span-2">' +
+                    '<label class="block text-[10px] text-slate-500 sm:hidden">Unit Price</label>' +
+                    '<input type="number" placeholder="Unit Price" value="' + unitPrice + '" class="w-full px-2 py-1.5 text-sm border rounded unit-price" oninput="calculateAll()">' +
+                '</div>' +
+                '<div class="sm:col-span-1">' +
+                    '<label class="block text-[10px] text-slate-500 sm:hidden">Units</label>' +
+                    '<input type="number" placeholder="Units" value="' + units + '" class="w-full px-2 py-1.5 text-sm border rounded units" oninput="calculateAll()">' +
+                '</div>' +
+                '<div class="sm:col-span-2">' +
+                    '<label class="block text-[10px] text-slate-500 sm:hidden">Discount</label>' +
+                    '<input type="number" placeholder="Discount" value="' + discount + '" class="w-full px-2 py-1.5 text-sm border rounded service-discount" oninput="calculateAll()">' +
+                '</div>' +
+                '<div class="sm:col-span-1">' +
+                    '<label class="block text-[10px] text-slate-500 sm:hidden">VAT (4.5%)</label>' +
+                    '<input type="text" readonly placeholder="VAT" class="w-full px-2 py-1.5 text-sm border rounded bg-slate-100 text-slate-600 font-medium service-vat">' +
+                '</div>' +
+                '<div class="sm:col-span-2">' +
+                    '<label class="block text-[10px] text-slate-500 sm:hidden">Total Price (incl. VAT)</label>' +
+                    '<input type="text" readonly placeholder="Total" class="w-full px-2 py-1.5 text-sm border rounded bg-slate-100 font-semibold text-slate-800 row-total">' +
+                '</div>' +
+                '<div class="sm:col-span-1 flex justify-end">' +
+                    '<button type="button" onclick="removeServiceRow(this)" class="text-red-500 hover:text-red-700 text-sm p-1 font-bold">✕</button>' +
+                '</div>';
+
+            container.appendChild(rowDiv);
+            calculateAll();
+        }
+
+        function removeServiceRow(btn) {
+            var row = btn.closest('.service-row');
+            if (row) {
+                row.remove();
+                calculateAll();
+            }
+        }
+
+        function calculateAll() {
+            var rows = document.querySelectorAll('.service-row');
+            var totalServiceSubtotal = 0;
+            var totalServiceVat = 0;
+
+            rows.forEach(function(row) {
+                var unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
+                var units = parseFloat(row.querySelector('.units').value) || 0;
+                var discount = parseFloat(row.querySelector('.service-discount').value) || 0;
+
+                var subtotal = (unitPrice * units) - discount;
+                if (subtotal < 0) subtotal = 0;
+
+                var vat = subtotal * 0.045;
+                var rowTotalWithVat = subtotal + vat;
+
+                row.querySelector('.service-vat').value = vat.toFixed(2);
+                row.querySelector('.row-total').value = rowTotalWithVat.toFixed(2);
+
+                totalServiceSubtotal += subtotal;
+                totalServiceVat += vat;
+            });
+
+            var materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
+            var materialVat = materialPrice * 0.0143;
+            var materialTotalWithVat = materialPrice + materialVat;
+
+            document.getElementById('materialVatDisplay').value = materialVat.toFixed(2);
+            document.getElementById('materialTotalDisplay').value = materialTotalWithVat.toFixed(2);
+
+            var grandTotal = totalServiceSubtotal + totalServiceVat + materialTotalWithVat;
+
+            document.getElementById('sumServiceSubtotal').innerText = totalServiceSubtotal.toFixed(2) + " Tk";
+            document.getElementById('sumServiceVat').innerText = totalServiceVat.toFixed(2) + " Tk";
+            document.getElementById('sumMaterialTotal').innerText = materialTotalWithVat.toFixed(2) + " Tk";
+            document.getElementById('sumGrandTotal').innerText = grandTotal.toFixed(2) + " Tk";
+        }
+
+        window.onload = function() {
+            addServiceRow("", "", 1, "");
+        };
+    </script>
+</body>
+</html>
