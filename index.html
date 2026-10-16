@@ -11,7 +11,7 @@
     <div class="max-w-6xl mx-auto bg-white shadow-lg rounded-xl p-6 md:p-8">
         <h1 class="text-2xl font-bold text-slate-800 mb-6 border-b pb-3 flex items-center justify-between">
             <span>Bill Update Calculator</span>
-            <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">v1.4</span>
+            <span class="text-sm font-normal bg-blue-100 text-blue-800 px-3 py-1 rounded-full">v1.5</span>
         </h1>
 
         <!-- Target Amount Section -->
@@ -42,7 +42,7 @@
         <div class="mb-6">
             <div class="flex justify-between items-center mb-3">
                 <h2 class="text-lg font-semibold text-slate-700">Service Categories</h2>
-                <button type="button" onclick="addServiceRow()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-3 py-1.5 rounded shadow transition">+ Add Service</button>
+                <button type="button" id="addServiceBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm px-3 py-1.5 rounded shadow transition">+ Add Service</button>
             </div>
             <div id="serviceRowsContainer" class="space-y-4">
                 <!-- Dynamic Service Rows will go here -->
@@ -129,9 +129,18 @@
                     '<input type="text" readonly placeholder="Total" class="w-full px-3 py-2 text-sm border rounded bg-slate-100 font-semibold text-slate-800 row-total">' +
                 '</div>' +
                 '<div class="sm:col-span-1 flex items-end justify-end gap-1.5 pt-5">' +
-                    '<button type="button" onclick="adjustRowToTarget(this)" title="আপডেট করুন" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded shadow font-semibold flex items-center gap-1">🎯 আপডেট</button>' +
-                    '<button type="button" onclick="removeServiceRow(this)" class="text-red-500 hover:text-red-700 text-sm px-2 py-2 font-bold">✕</button>' +
+                    '<button type="button" class="update-target-btn bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded shadow font-semibold flex items-center gap-1">🎯 আপডেট</button>' +
+                    '<button type="button" class="remove-row-btn text-red-500 hover:text-red-700 text-sm px-2 py-2 font-bold">✕</button>' +
                 '</div>';
+
+            // Event listener setup for buttons to avoid inline onclick reference errors
+            rowDiv.querySelector('.update-target-btn').addEventListener('click', function() {
+                adjustRowToTarget(this);
+            });
+
+            rowDiv.querySelector('.remove-row-btn').addEventListener('click', function() {
+                removeServiceRow(this);
+            });
 
             container.appendChild(rowDiv);
             calculateAll();
@@ -152,7 +161,6 @@
             var serviceVatRate = serviceVatPercent / 100;
             var materialVatRate = materialVatPercent / 100;
 
-            // Update UI dynamic labels
             document.getElementById('matVatLabel').innerText = "Material VAT (" + materialVatPercent + "%)";
             document.getElementById('sumServiceVatTitle').innerText = "Total Service VAT (" + serviceVatPercent + "%)";
             document.getElementById('sumMatVatTitle').innerText = "Material + VAT (" + materialVatPercent + "%)";
@@ -208,4 +216,53 @@
 
             var serviceVatPercent = parseFloat(document.getElementById('serviceVatRate').value) || 0;
             var serviceVatRate = serviceVatPercent / 100;
-            var materialVatPercent = parseFloat(document.getElementById('materialVatRate
+            var materialVatPercent = parseFloat(document.getElementById('materialVatRate').value) || 0;
+            var materialVatRate = materialVatPercent / 100;
+
+            var targetRow = btn.closest('.service-row');
+            var rows = document.querySelectorAll('.service-row');
+            var otherRowsTotalWithVat = 0;
+
+            rows.forEach(function(row) {
+                if (row !== targetRow) {
+                    var unitPrice = parseFloat(row.querySelector('.unit-price').value) || 0;
+                    var units = parseFloat(row.querySelector('.units').value) || 1;
+                    var discount = parseFloat(row.querySelector('.service-discount').value) || 0;
+
+                    var subtotal = (unitPrice * units) - discount;
+                    if (subtotal < 0) subtotal = 0;
+                    var vat = subtotal * serviceVatRate;
+                    otherRowsTotalWithVat += (subtotal + vat);
+                }
+            });
+
+            var materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
+            var materialTotalWithVat = materialPrice + (materialPrice * materialVatRate);
+
+            var neededRowTotalWithVat = targetAmount - (otherRowsTotalWithVat + materialTotalWithVat);
+
+            if (neededRowTotalWithVat < 0) {
+                alert("Target Amount অত্যন্ত কম, অন্য লাইনের যোগফল টার্গেটের চেয়ে বেশি হয়ে গেছে!");
+                return;
+            }
+
+            var units = parseFloat(targetRow.querySelector('.units').value) || 1;
+            var discount = parseFloat(targetRow.querySelector('.service-discount').value) || 0;
+
+            var neededSubtotal = neededRowTotalWithVat / (1 + serviceVatRate);
+            var calculatedUnitPrice = (neededSubtotal + discount) / units;
+            if (calculatedUnitPrice < 0) calculatedUnitPrice = 0;
+
+            targetRow.querySelector('.unit-price').value = calculatedUnitPrice.toFixed(2);
+            calculateAll();
+        }
+
+        window.onload = function() {
+            document.getElementById('addServiceBtn').addEventListener('click', function() {
+                addServiceRow("", 1, "");
+            });
+            addServiceRow("", 1, "");
+        };
+    </script>
+</body>
+</html>
