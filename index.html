@@ -21,7 +21,7 @@
                 <button type="button" id="themeToggleBtn" onclick="toggleTheme()" class="text-xs px-3 py-1.5 rounded-full font-medium bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 shadow transition flex items-center gap-1.5">
                     <span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span>
                 </button>
-                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v1.7</span>
+                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v1.8</span>
             </div>
         </h1>
 
@@ -79,10 +79,31 @@
             </div>
         </div>
 
+        <!-- Overall/Grand Discount Section -->
+        <div class="mb-6 bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-900/50 p-4 rounded-lg">
+            <h2 class="text-sm font-semibold text-purple-900 dark:text-purple-300 mb-2">Overall / Total Bill Discount (টোটাল বিলে অতিরিক্ত ডিসকাউন্ট)</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Total Overall Discount Amount</label>
+                    <div class="flex gap-2">
+                        <input type="number" id="overallDiscountVal" placeholder="0" class="w-full px-3 py-2 border dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-sm" oninput="calculateAll()">
+                        <select id="overallDiscountType" class="px-3 py-2 text-xs border dark:border-slate-600 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold" onchange="calculateAll()">
+                            <option value="flat">Tk</option>
+                            <option value="percent">%</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Discount Deduction (Tk)</label>
+                    <input type="text" id="overallDiscountDisplay" readonly class="w-full px-3 py-2 border dark:border-slate-600 rounded bg-slate-100 dark:bg-slate-900/50 text-purple-700 dark:text-purple-300 font-bold text-sm" value="0.00 Tk">
+                </div>
+            </div>
+        </div>
+
         <!-- Summary / Calculation Result Box -->
         <div class="bg-slate-800 dark:bg-slate-900 border dark:border-slate-700 text-white rounded-lg p-5">
             <h3 class="text-md font-semibold mb-3 border-b border-slate-700 pb-2">Calculation Summary</h3>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-4 text-sm">
                 <div>
                     <span class="block text-slate-400 text-xs">Total Service Price (w/o VAT)</span>
                     <span id="sumServiceSubtotal" class="text-lg font-bold">0.00 Tk</span>
@@ -94,6 +115,10 @@
                 <div>
                     <span id="sumMatVatTitle" class="block text-slate-400 text-xs">Material + VAT (1.43%)</span>
                     <span id="sumMaterialTotal" class="text-lg font-bold">0.00 Tk</span>
+                </div>
+                <div>
+                    <span class="block text-slate-400 text-xs">Overall Discount</span>
+                    <span id="sumOverallDiscount" class="text-lg font-bold text-rose-400">0.00 Tk</span>
                 </div>
                 <div>
                     <span class="block text-slate-400 text-xs">Calculated Grand Total</span>
@@ -240,11 +265,28 @@
             document.getElementById('materialVatDisplay').value = materialVat.toFixed(2);
             document.getElementById('materialTotalDisplay').value = materialTotalWithVat.toFixed(2);
 
-            var grandTotal = totalServiceSubtotal + totalServiceVat + materialTotalWithVat;
+            var totalBeforeOverallDiscount = totalServiceSubtotal + totalServiceVat + materialTotalWithVat;
+
+            // Overall Discount Calculation
+            var overallDiscVal = parseFloat(document.getElementById('overallDiscountVal').value) || 0;
+            var overallDiscType = document.getElementById('overallDiscountType').value;
+
+            var overallDiscountDeduction = 0;
+            if (overallDiscType === 'percent') {
+                overallDiscountDeduction = totalBeforeOverallDiscount * (overallDiscVal / 100);
+            } else {
+                overallDiscountDeduction = overallDiscVal;
+            }
+
+            var grandTotal = totalBeforeOverallDiscount - overallDiscountDeduction;
+            if (grandTotal < 0) grandTotal = 0;
+
+            document.getElementById('overallDiscountDisplay').value = overallDiscountDeduction.toFixed(2) + " Tk";
 
             document.getElementById('sumServiceSubtotal').innerText = totalServiceSubtotal.toFixed(2) + " Tk";
             document.getElementById('sumServiceVat').innerText = totalServiceVat.toFixed(2) + " Tk";
             document.getElementById('sumMaterialTotal').innerText = materialTotalWithVat.toFixed(2) + " Tk";
+            document.getElementById('sumOverallDiscount').innerText = "- " + overallDiscountDeduction.toFixed(2) + " Tk";
             document.getElementById('sumGrandTotal').innerText = grandTotal.toFixed(2) + " Tk";
         }
 
@@ -261,6 +303,23 @@
             var serviceVatRate = serviceVatPercent / 100;
             var materialVatPercent = parseFloat(document.getElementById('materialVatRate').value) || 0;
             var materialVatRate = materialVatPercent / 100;
+
+            var overallDiscVal = parseFloat(document.getElementById('overallDiscountVal').value) || 0;
+            var overallDiscType = document.getElementById('overallDiscountType').value;
+
+            // If overall discount is flat: totalBeforeOverallDiscount = targetAmount + flatDiscount
+            // If overall discount is percent: totalBeforeOverallDiscount = targetAmount / (1 - percent/100)
+            var requiredTotalBeforeOverallDiscount = 0;
+            if (overallDiscType === 'percent') {
+                var factor = 1 - (overallDiscVal / 100);
+                if (factor <= 0) {
+                    alert("টোটাল ডিসকাউন্ট ১০০% বা তার বেশি হতে পারবে না!");
+                    return;
+                }
+                requiredTotalBeforeOverallDiscount = targetAmount / factor;
+            } else {
+                requiredTotalBeforeOverallDiscount = targetAmount + overallDiscVal;
+            }
 
             var targetRow = btn.closest('.service-row');
             var rows = document.querySelectorAll('.service-row');
@@ -292,7 +351,7 @@
             var materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
             var materialTotalWithVat = materialPrice + (materialPrice * materialVatRate);
 
-            var neededRowTotalWithVat = targetAmount - (otherRowsTotalWithVat + materialTotalWithVat);
+            var neededRowTotalWithVat = requiredTotalBeforeOverallDiscount - (otherRowsTotalWithVat + materialTotalWithVat);
 
             if (neededRowTotalWithVat < 0) {
                 alert("Target Amount অত্যন্ত কম, অন্য লাইনের যোগফল টার্গেটের চেয়ে বেশি হয়ে গেছে!");
@@ -307,15 +366,13 @@
 
             var calculatedUnitPrice = 0;
             if (discountType === 'percent') {
-                // neededSubtotal = (unitPrice * units) * (1 - discountVal/100)
                 var discountFactor = 1 - (discountVal / 100);
                 if (discountFactor <= 0) {
-                    alert("ডিসকাউন্ট ১০০% বা তার বেশি হতে পারবে না!");
+                    alert("সার্ভিস ডিসকাউন্ট ১০০% বা তার বেশি হতে পারবে না!");
                     return;
                 }
                 calculatedUnitPrice = neededSubtotal / (units * discountFactor);
             } else {
-                // neededSubtotal = (unitPrice * units) - discountVal
                 calculatedUnitPrice = (neededSubtotal + discountVal) / units;
             }
 
