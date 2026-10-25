@@ -14,14 +14,17 @@
 </head>
 <body class="bg-slate-100 dark:bg-slate-900 min-h-screen p-4 sm:p-6 transition-colors duration-200">
     <div class="max-w-6xl mx-auto bg-white dark:bg-slate-800 shadow-lg rounded-xl p-6 md:p-8 transition-colors duration-200">
-        <h1 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 border-b dark:border-slate-700 pb-3 flex items-center justify-between">
-            <span>Bill Update Calculator</span>
+        <h1 class="text-2xl font-bold text-slate-800 dark:text-white mb-6 border-b dark:border-slate-700 pb-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3 flex-wrap">
+                <span>Bill Update Calculator</span>
+                <span class="text-xs font-normal text-slate-400 dark:text-slate-500 italic">Powered by Mamotazul</span>
+            </div>
             <div class="flex items-center gap-3">
                 <!-- Theme Toggle Button -->
                 <button type="button" id="themeToggleBtn" onclick="toggleTheme()" class="text-xs px-3 py-1.5 rounded-full font-medium bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 shadow transition flex items-center gap-1.5">
                     <span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span>
                 </button>
-                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v2.0</span>
+                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v2.1</span>
             </div>
         </h1>
 
@@ -309,9 +312,6 @@
             var targetRow = btn.closest('.service-row');
             var rows = document.querySelectorAll('.service-row');
 
-            // Instead of modifying unit price, we want the target row to absorb the difference directly 
-            // while keeping its own base unit price intact, or scaling properly.
-            // Let's calculate what grand total is currently without targetRow's contribution:
             var otherRowsSubtotal = 0;
             var otherRowsVat = 0;
 
@@ -334,7 +334,6 @@
             var materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
             var materialTotalWithVat = materialPrice + (materialPrice * materialVatRate);
 
-            // Total required before overall discount to hit targetAmount after overall discount:
             var requiredTotalBeforeOverall = 0;
             if (overallDiscType === 'percent') {
                 var factor = 1 - (overallDiscVal / 100);
@@ -347,7 +346,6 @@
                 requiredTotalBeforeOverall = targetAmount + overallDiscVal;
             }
 
-            // Remaining amount that targetRow must provide (including its own VAT)
             var targetRowTotalWithVatNeeded = requiredTotalBeforeOverall - (otherRowsSubtotal + otherRowsVat + materialTotalWithVat);
 
             if (targetRowTotalWithVatNeeded < 0) {
@@ -359,10 +357,8 @@
             var discountVal = parseFloat(targetRow.querySelector('.service-discount').value) || 0;
             var discountType = targetRow.querySelector('.discount-type').value;
 
-            // Target row subtotal needed (before service vat)
             var targetRowSubtotalNeeded = targetRowTotalWithVatNeeded / (1 + serviceVatRate);
 
-            // Gross price needed for target row (Subtotal + Row Discount)
             var targetGrossNeeded = 0;
             if (discountType === 'percent') {
                 var discFactor = 1 - (discountVal / 100);
