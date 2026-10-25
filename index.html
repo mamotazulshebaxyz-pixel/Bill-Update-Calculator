@@ -21,7 +21,7 @@
                 <button type="button" id="themeToggleBtn" onclick="toggleTheme()" class="text-xs px-3 py-1.5 rounded-full font-medium bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 shadow transition flex items-center gap-1.5">
                     <span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span>
                 </button>
-                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v1.8</span>
+                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v1.9</span>
             </div>
         </h1>
 
@@ -267,7 +267,6 @@
 
             var totalBeforeOverallDiscount = totalServiceSubtotal + totalServiceVat + materialTotalWithVat;
 
-            // Overall Discount Calculation
             var overallDiscVal = parseFloat(document.getElementById('overallDiscountVal').value) || 0;
             var overallDiscType = document.getElementById('overallDiscountType').value;
 
@@ -307,8 +306,7 @@
             var overallDiscVal = parseFloat(document.getElementById('overallDiscountVal').value) || 0;
             var overallDiscType = document.getElementById('overallDiscountType').value;
 
-            // If overall discount is flat: totalBeforeOverallDiscount = targetAmount + flatDiscount
-            // If overall discount is percent: totalBeforeOverallDiscount = targetAmount / (1 - percent/100)
+            // Reverse overall discount to get required total before overall discount
             var requiredTotalBeforeOverallDiscount = 0;
             if (overallDiscType === 'percent') {
                 var factor = 1 - (overallDiscVal / 100);
@@ -333,13 +331,7 @@
                     var discountType = row.querySelector('.discount-type').value;
 
                     var grossPrice = unitPrice * units;
-                    var discountAmount = 0;
-
-                    if (discountType === 'percent') {
-                        discountAmount = grossPrice * (discountVal / 100);
-                    } else {
-                        discountAmount = discountVal;
-                    }
+                    var discountAmount = discountType === 'percent' ? grossPrice * (discountVal / 100) : discountVal;
 
                     var subtotal = grossPrice - discountAmount;
                     if (subtotal < 0) subtotal = 0;
@@ -362,7 +354,8 @@
             var discountVal = parseFloat(targetRow.querySelector('.service-discount').value) || 0;
             var discountType = targetRow.querySelector('.discount-type').value;
 
-            var neededSubtotal = neededRowTotalWithVat / (1 + serviceVatRate);
+            // Needed subtotal for this target row (including its own row discount, before 4.5% vat)
+            var neededSubtotalWithDiscount = neededRowTotalWithVat / (1 + serviceVatRate);
 
             var calculatedUnitPrice = 0;
             if (discountType === 'percent') {
@@ -371,9 +364,9 @@
                     alert("সার্ভিস ডিসকাউন্ট ১০০% বা তার বেশি হতে পারবে না!");
                     return;
                 }
-                calculatedUnitPrice = neededSubtotal / (units * discountFactor);
+                calculatedUnitPrice = neededSubtotalWithDiscount / (units * discountFactor);
             } else {
-                calculatedUnitPrice = (neededSubtotal + discountVal) / units;
+                calculatedUnitPrice = (neededSubtotalWithDiscount + discountVal) / units;
             }
 
             if (calculatedUnitPrice < 0) calculatedUnitPrice = 0;
