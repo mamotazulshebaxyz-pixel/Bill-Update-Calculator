@@ -21,7 +21,7 @@
                 <button type="button" id="themeToggleBtn" onclick="toggleTheme()" class="text-xs px-3 py-1.5 rounded-full font-medium bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-yellow-400 shadow transition flex items-center gap-1.5">
                     <span id="themeIcon">☀️</span> <span id="themeText">Light Mode</span>
                 </button>
-                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v1.9</span>
+                <span class="text-sm font-normal bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 px-3 py-1 rounded-full">v2.0</span>
             </div>
         </h1>
 
@@ -306,22 +306,14 @@
             var overallDiscVal = parseFloat(document.getElementById('overallDiscountVal').value) || 0;
             var overallDiscType = document.getElementById('overallDiscountType').value;
 
-            // Reverse overall discount to get required total before overall discount
-            var requiredTotalBeforeOverallDiscount = 0;
-            if (overallDiscType === 'percent') {
-                var factor = 1 - (overallDiscVal / 100);
-                if (factor <= 0) {
-                    alert("টোটাল ডিসকাউন্ট ১০০% বা তার বেশি হতে পারবে না!");
-                    return;
-                }
-                requiredTotalBeforeOverallDiscount = targetAmount / factor;
-            } else {
-                requiredTotalBeforeOverallDiscount = targetAmount + overallDiscVal;
-            }
-
             var targetRow = btn.closest('.service-row');
             var rows = document.querySelectorAll('.service-row');
-            var otherRowsTotalWithVat = 0;
+
+            // Instead of modifying unit price, we want the target row to absorb the difference directly 
+            // while keeping its own base unit price intact, or scaling properly.
+            // Let's calculate what grand total is currently without targetRow's contribution:
+            var otherRowsSubtotal = 0;
+            var otherRowsVat = 0;
 
             rows.forEach(function(row) {
                 if (row !== targetRow) {
@@ -332,20 +324,33 @@
 
                     var grossPrice = unitPrice * units;
                     var discountAmount = discountType === 'percent' ? grossPrice * (discountVal / 100) : discountVal;
-
                     var subtotal = grossPrice - discountAmount;
                     if (subtotal < 0) subtotal = 0;
-                    var vat = subtotal * serviceVatRate;
-                    otherRowsTotalWithVat += (subtotal + vat);
+                    otherRowsSubtotal += subtotal;
+                    otherRowsVat += subtotal * serviceVatRate;
                 }
             });
 
             var materialPrice = parseFloat(document.getElementById('materialPrice').value) || 0;
             var materialTotalWithVat = materialPrice + (materialPrice * materialVatRate);
 
-            var neededRowTotalWithVat = requiredTotalBeforeOverallDiscount - (otherRowsTotalWithVat + materialTotalWithVat);
+            // Total required before overall discount to hit targetAmount after overall discount:
+            var requiredTotalBeforeOverall = 0;
+            if (overallDiscType === 'percent') {
+                var factor = 1 - (overallDiscVal / 100);
+                if (factor <= 0) {
+                    alert("টোটাল ডিসকাউন্ট ১০০% বা তার বেশি হতে পারবে না!");
+                    return;
+                }
+                requiredTotalBeforeOverall = targetAmount / factor;
+            } else {
+                requiredTotalBeforeOverall = targetAmount + overallDiscVal;
+            }
 
-            if (neededRowTotalWithVat < 0) {
+            // Remaining amount that targetRow must provide (including its own VAT)
+            var targetRowTotalWithVatNeeded = requiredTotalBeforeOverall - (otherRowsSubtotal + otherRowsVat + materialTotalWithVat);
+
+            if (targetRowTotalWithVatNeeded < 0) {
                 alert("Target Amount অত্যন্ত কম, অন্য লাইনের যোগফল টার্গেটের চেয়ে বেশি হয়ে গেছে!");
                 return;
             }
@@ -354,21 +359,23 @@
             var discountVal = parseFloat(targetRow.querySelector('.service-discount').value) || 0;
             var discountType = targetRow.querySelector('.discount-type').value;
 
-            // Needed subtotal for this target row (including its own row discount, before 4.5% vat)
-            var neededSubtotalWithDiscount = neededRowTotalWithVat / (1 + serviceVatRate);
+            // Target row subtotal needed (before service vat)
+            var targetRowSubtotalNeeded = targetRowTotalWithVatNeeded / (1 + serviceVatRate);
 
-            var calculatedUnitPrice = 0;
+            // Gross price needed for target row (Subtotal + Row Discount)
+            var targetGrossNeeded = 0;
             if (discountType === 'percent') {
-                var discountFactor = 1 - (discountVal / 100);
-                if (discountFactor <= 0) {
+                var discFactor = 1 - (discountVal / 100);
+                if (discFactor <= 0) {
                     alert("সার্ভিস ডিসকাউন্ট ১০০% বা তার বেশি হতে পারবে না!");
                     return;
                 }
-                calculatedUnitPrice = neededSubtotalWithDiscount / (units * discountFactor);
+                targetGrossNeeded = targetRowSubtotalNeeded / discFactor;
             } else {
-                calculatedUnitPrice = (neededSubtotalWithDiscount + discountVal) / units;
+                targetGrossNeeded = targetRowSubtotalNeeded + discountVal;
             }
 
+            var calculatedUnitPrice = targetGrossNeeded / units;
             if (calculatedUnitPrice < 0) calculatedUnitPrice = 0;
 
             targetRow.querySelector('.unit-price').value = calculatedUnitPrice.toFixed(2);
